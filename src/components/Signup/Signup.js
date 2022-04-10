@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import auth from '../../firebase.init';
+import { useAuthState, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmpassword, setConfirmpassword] = useState('');
     const [error, setError] = useState('');
+
+    const navigate = useNavigate();
+    const [createUserWithEmailAndPassword, user, sendEmailVerification] = useCreateUserWithEmailAndPassword(auth);
 
     const handleEmail = event => {
         setEmail(event.target.value);
@@ -16,8 +21,27 @@ const Signup = () => {
     const handleConfirmpassword = event => {
         setConfirmpassword(event.target.value);
     }
+
+    if (user) {
+        navigate('/shop');
+    }
     const handleFrom = event => {
         event.preventDefault();
+        if (password.length < 6) {
+            setError('Careckters Must Be 6');
+            return;
+        }
+        if (password !== confirmpassword) {
+            setError("Your password didn't match");
+            return;
+        }
+        if (sendEmailVerification) {
+            return <p>send email...</p>
+        }
+        createUserWithEmailAndPassword(email, password)
+            .then(result => {
+                console.log('sign up');
+            })
     }
     return (
         <div className='form-container'>
@@ -31,6 +55,7 @@ const Signup = () => {
                     <input onBlur={handlePassword} type="password" name="password" id="" required />
                     <label htmlFor="password">confirm-password</label>
                     <input onBlur={handleConfirmpassword} type="password" name="password" id="" required />
+                    <p style={{ color: "red" }}>{error}</p>
                     <div className='submit-btn'>
                         <input type="submit" value="Sign Up" />
                     </div>
